@@ -12,12 +12,15 @@ import numpy as np
 import pandas as pd
 from torch_geometric.data import Data, InMemoryDataset, download_url, extract_zip
 from torch_geometric.utils import subgraph
+import torch.serialization
+import torch_geometric
 
 import src.utils as utils
 from src.datasets.abstract_dataset import MolecularDataModule, AbstractDatasetInfos
 from src.analysis.rdkit_functions import mol2smiles, build_molecule_with_partial_charges
 from src.analysis.rdkit_functions import compute_molecular_metrics
 
+torch.serialization.add_safe_globals([torch_geometric.data.data.Data])
 
 def files_exist(files) -> bool:
     # NOTE: We return `False` in case `files` is empty, leading to a
@@ -68,7 +71,7 @@ class QM9Dataset(InMemoryDataset):
             self.file_idx = 2
         self.remove_h = remove_h
         super().__init__(root, transform, pre_transform, pre_filter)
-        self.data, self.slices = torch.load(self.processed_paths[self.file_idx])
+        self.data, self.slices = torch.load(self.processed_paths[self.file_idx], weights_only=False)
 
     @property
     def raw_file_names(self):
